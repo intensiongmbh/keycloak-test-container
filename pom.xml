@@ -9,6 +9,14 @@
   <name>Keycloak test container by intension</name>
   <description>Provides Keycloak docker container and test utilities</description>
 
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/intensiongmbh/keycloak-test-container</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
     <revision>1.0.0</revision>
     <changelist>-SNAPSHOT</changelist>
@@ -45,13 +53,11 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${testcontainers.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
       <version>${keycloak.version}</version>
-      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
