@@ -18,6 +18,8 @@ jobs:
          run: |
            cat <(echo -e "${{ secrets.GPG_SECRET }}") | gpg --batch --import
            gpg --list-secret-keys --keyid-format LONG
+         env:
+           GPG_TTY: $(tty)
       -  name: Publish package
          run: mvn --batch-mode deploy -DskipTests -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Drevision=${GITHUB_REF##*/} -Dchangelist=
          env:
