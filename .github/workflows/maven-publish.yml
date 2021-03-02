@@ -21,7 +21,7 @@ jobs:
            gpg-private-key: ${{ secrets.GPG_SECRET }}
            passphrase: ${{ secrets.GPG_PASSPHRASE }}
       -  name: Publish package
-         run: mvn --batch-mode deploy -DskipTests -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Drevision=${GITHUB_REF##*/} -Dchangelist=
+         run: mvn --batch-mode deploy -DskipTests -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Drevision=1.0.0 -Dchangelist=
          env:
            MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
            MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
