@@ -8,6 +8,37 @@
 
   <name>Keycloak test container by intension</name>
   <description>Provides Keycloak docker container and test utilities</description>
+  <url>https://github.com/intensiongmbh/keycloak-test-container</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Lokeshkumar Prakashkumar</name>
+      <email>lprakash@intension.de</email>
+      <organization>intension GmbH</organization>
+      <organizationUrl>https://www.intension.de/</organizationUrl>
+    </developer>
+    <developer>
+      <name>Ingo Kuba</name>
+      <email>ikuba@intension.de</email>
+      <url>https://github.com/ingokuba</url>
+      <organization>intension GmbH</organization>
+      <organizationUrl>https://www.intension.de/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/intensiongmbh/keycloak-test-container.git</connection>
+    <developerConnection>scm:git:ssh://github.com:intensiongmbh/keycloak-test-container.git</developerConnection>
+    <url>https://github.com/intensiongmbh/keycloak-test-container/tree/master</url>
+  </scm>
 
   <distributionManagement>
     <repository>
@@ -112,30 +143,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.2.5</version>
-        <configuration>
-          <updatePomFile>true</updatePomFile>
-        </configuration>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven.test-plugins.version}</version>
@@ -166,6 +173,46 @@
             --illegal-access=permit
           </argLine>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

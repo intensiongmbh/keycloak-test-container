@@ -14,8 +14,14 @@ jobs:
            server-id: ossrh
            server-username: MAVEN_USERNAME
            server-password: MAVEN_PASSWORD
+      -  name: Import GPG key
+         id: import_gpg
+         uses: crazy-max/ghaction-import-gpg@v3
+         with:
+           gpg-private-key: ${{ secrets.GPG_SECRET }}
+           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       -  name: Publish package
-         run: mvn --batch-mode deploy -DskipTests -Drevision=${GITHUB_REF##*/} -Dchangelist=
+         run: mvn --batch-mode deploy -DskipTests -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Drevision=${GITHUB_REF##*/} -Dchangelist=
          env:
            MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
            MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
