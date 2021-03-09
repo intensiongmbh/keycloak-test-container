@@ -1,8 +1,11 @@
 package de.intension.keycloak.test;
 
+import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -12,6 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.keycloak.admin.client.Keycloak;
@@ -23,15 +29,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Testcontainers
-public class KeycloakExtensionTestBase
+public abstract class KeycloakDevTestBase
 {
 
-    protected static final String         TEST_REALM = "test-realm";
+    protected static final String         TEST_REALM    = "test-realm";
     protected static KeycloakDevContainer keycloak;
 
     protected static Keycloak             keycloakClient;
 
-    protected ObjectMapper                mapper     = new ObjectMapper();
+    protected ObjectMapper                mapper        = new ObjectMapper();
+
+    private static final String           BEARER_PREFIX = "Bearer ";
 
     @BeforeAll
     public static void beforeClass()
@@ -40,6 +48,7 @@ public class KeycloakExtensionTestBase
         keycloak.withReuse(true);
         keycloak.withExposedPorts(8080, 8787);
         keycloak.withFixedExposedPort(8787, 8787);
+        keycloak.withRealmImportFile(getRealmConfig());
         keycloak.withClassFolderChangeTrackingEnabled(true);
         keycloak.start();
 
@@ -48,8 +57,13 @@ public class KeycloakExtensionTestBase
         keycloakClient.realm(TEST_REALM);
     }
 
+    protected static String getRealmConfig()
+    {
+        return "realm-export.json";
+    }
+
     protected String getAdminToken(String email)
-        throws Exception
+        throws IOException, InterruptedException
     {
         HttpClient client = HttpClient.newHttpClient();
         Map<String, String> params = new HashMap<>();
@@ -59,24 +73,12 @@ public class KeycloakExtensionTestBase
         params.put("password", "test");
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:" + keycloak.getHttpPort() + "/auth/realms/" + TEST_REALM + "/protocol/openid-connect/token"))
-            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
             .POST(buildFormDataFromMap(params))
             .build();
         HttpResponse<String> response = client.send(request,
                                                     HttpResponse.BodyHandlers.ofString());
         return retrieveToken(response.body());
-    }
-
-    protected String getUserWithoutRoleToken()
-        throws Exception
-    {
-        return getAdminToken("justuser@sprylab.de");
-    }
-
-    protected String getUserWithRoleToken()
-        throws Exception
-    {
-        return getAdminToken("tim@sprylab.de");
     }
 
     private HttpRequest.BodyPublisher buildFormDataFromMap(Map<String, String> params)
@@ -86,54 +88,54 @@ public class KeycloakExtensionTestBase
             if (builder.length() > 0) {
                 builder.append("&");
             }
-            builder.append(URLEncoder.encode(entry.getKey().toString(), StandardCharsets.UTF_8));
+            builder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
             builder.append("=");
-            builder.append(URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
+            builder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
         }
         return HttpRequest.BodyPublishers.ofString(builder.toString());
     }
 
     protected HttpResponse<String> post(String url, String body, String token)
-        throws Exception
+        throws IOException, InterruptedException
     {
         HttpClient javaClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
+            .header(AUTHORIZATION, BEARER_PREFIX + token)
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON)
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build();
         return javaClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     protected HttpResponse<String> delete(String url, String body, String token)
-        throws Exception
+        throws IOException, InterruptedException
     {
         HttpClient javaClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .method("DELETE", HttpRequest.BodyPublishers.ofString(body))
+            .header(AUTHORIZATION, BEARER_PREFIX + token)
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            .method(HttpMethod.DELETE, HttpRequest.BodyPublishers.ofString(body))
             .build();
         return javaClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     protected HttpResponse<String> get(String url, String token)
-        throws Exception
+        throws IOException, InterruptedException
     {
         HttpClient javaClient = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
+            .header(AUTHORIZATION, BEARER_PREFIX + token)
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON)
             .GET()
             .build();
         return javaClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     protected UserRepresentation getUserByEmail(String email)
-        throws Exception
+        throws IOException, InterruptedException
     {
         HttpResponse<String> userResponse = get("http://localhost:" + keycloak.getHttpPort() + "/auth/admin/realms/" + TEST_REALM + "/users?email=" + email
                 + "&exact=true",
@@ -143,8 +145,10 @@ public class KeycloakExtensionTestBase
         return users.get(0);
     }
 
+    protected abstract String getUserWithRoleToken();
+
     private String retrieveToken(String responseBody)
-        throws Exception
+        throws IOException
     {
         return mapper.readValue(responseBody, AccessTokenResponse.class).getToken();
     }
