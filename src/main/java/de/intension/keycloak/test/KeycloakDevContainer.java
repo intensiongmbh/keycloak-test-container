@@ -42,12 +42,17 @@ public class KeycloakDevContainer extends KeycloakContainer
 {
 
     private boolean classFolderChangeTrackingEnabled;
-    
-    private String deployableJarName;
+
+    private String  deployableJarName;
+
+    public KeycloakDevContainer()
+    {
+        super("quay.io/keycloak/keycloak:12.0.2");
+    }
 
     public KeycloakDevContainer(String deployableJarName)
-    {        
-        super("quay.io/keycloak/keycloak:12.0.2");
+    {
+        this();
         this.deployableJarName = deployableJarName;
     }
 
@@ -64,10 +69,14 @@ public class KeycloakDevContainer extends KeycloakContainer
         this.withExposedPorts(8080, 8443, 8787);
 
         this.withCommand("-c standalone.xml", "-Dkeycloak.profile.feature.upload_scripts=enabled", "-Dwildfly.statistics-enabled=true", "--debug *:8787");
+
+        if (this.deployableJarName == null) {
+            return;
+        }
+
         String explodedFolderExtensionsJar = "/opt/jboss/keycloak/standalone/deployments/extensions.jar";
         String deploymentTriggerFile = explodedFolderExtensionsJar + ".dodeploy";
 
-        //String classesLocation = MountableFile.forClasspathResource(".").getResolvedPath() + "../classes";
         String classesLocation = MountableFile.forClasspathResource(".").getResolvedPath() + "../" + this.deployableJarName + ".jar";
 
         addFileSystemBind(classesLocation, explodedFolderExtensionsJar, BindMode.READ_WRITE, SelinuxContext.SINGLE);
