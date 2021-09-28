@@ -47,13 +47,18 @@ public class KeycloakDevContainer extends KeycloakContainer
 
     public KeycloakDevContainer()
     {
-        super("quay.io/keycloak/keycloak:12.0.2");
+        this("quay.io/keycloak/keycloak:12.0.2");
     }
 
-    public KeycloakDevContainer(String deployableJarName)
+    public KeycloakDevContainer(String dockerImageName)
     {
-        this();
+        super(dockerImageName);
+    }
+
+    public KeycloakDevContainer withExtension(String deployableJarName)
+    {
         this.deployableJarName = deployableJarName;
+        return this;
     }
 
     public KeycloakContainer withFixedExposedPort(int hostPort, int containerPort)
