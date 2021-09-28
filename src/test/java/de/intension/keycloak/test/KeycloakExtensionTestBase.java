@@ -34,9 +34,10 @@ public class KeycloakExtensionTestBase
     protected ObjectMapper                mapper     = new ObjectMapper();
 
     @BeforeAll
+    @SuppressWarnings("resource")
     public static void beforeClass()
     {
-        keycloak = new KeycloakDevContainer("keycloak-test-container");
+        keycloak = new KeycloakDevContainer().withExtension("keycloak-test-container");
         keycloak.withReuse(true);
         keycloak.withExposedPorts(8080, 8787);
         keycloak.withFixedExposedPort(8787, 8787);
